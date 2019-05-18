@@ -1,0 +1,99 @@
+---
+
+- name: "Web Server | Create the required directory"
+  file:
+    path: "{{ item }}"
+    state: directory
+  with_items:
+    - /webapps/
+    - /webapps/devops
+    - /opt/scripts 
+  tags:
+    - "web_server"
+    - "configure"
+    - "create_dir"
+
+- name: "Web Server | Clone the repo from bitbucket"
+  git:
+    repo: https://bitbucket.org/azneita/devops-challenge/src/master/
+    dest: /webapps/devops
+  tags:
+    - "web_server"
+    - "configure"
+    - "clone_repo"
+
+- name: "Web Server | Copy the check_app script"
+  copy:
+    src: check_app.py
+    dest: /opt/scripts/
+    mode: 0755
+  tags:
+    - "web_server"
+    - "configure"
+    - "check_app"
+
+- name: "Web Server | Copy the web nginx configuration"
+  copy:
+    src: web.conf
+    dest: /etc/nginx/conf.d
+    mode: 0644
+  tags:
+    - "web_server"
+    - "configure"
+    - "copy_nginx_conf"
+
+- name: "Web Server | Copy the main nginx configuration"
+  copy:
+    src: nginx.conf
+    dest: /etc/nginx/
+    mode: 0644
+  notify:
+    - restart nginx
+  tags:
+    - "web_server"
+    - "configure"
+    - "copy_nginx_conf"
+
+- name: "Web Server | Copy the logrotate for script"
+  copy:
+    src: web_logs
+    dest: /etc/logrotate.d
+    mode: 0644
+  tags:
+    - "web_server"
+    - "configure"
+    - "create_logrotate"
+
+- name: "Web Server | Run the main app"
+  shell: "sudo -u somesh python /webapps/devops/app.py 2>> /var/log/web.log &"
+  tags:
+    - "web_server"
+    - "configure"
+    - "run_app"
+
+- name: "Web Server | Install the cron job for app health monitoring"
+  cron:
+    name: app check
+    job: /usr/bin/python /opt/scripts/check_app.py &
+    minute: "*/1"
+  tags:
+    - "web_server"
+    - "configure"
+    - "cron"
+
+- name: "Web Server | Forcibly run the logrotate for first time"
+  shell: /usr/sbin/logrotate -f -v /etc/logrotate.conf
+  tags:
+    - "web_server"
+    - "configure"
+    - "logrotate_enable"
+
+- name: "Web Server | Waiting for app to live"
+  pause:
+    prompt: "waiting for the app to come UP..."
+    minutes: 1
+  tags:
+    - "web_server"
+    - "configure"
+    - "clone_repo"
+    

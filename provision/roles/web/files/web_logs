@@ -1,0 +1,10 @@
+"/var/log/web_logs.log"
+{
+  daily
+  size 4K
+  rotate 7
+  missingok
+  compress
+  delaycompress
+  copytruncate
+}

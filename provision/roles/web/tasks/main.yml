@@ -1,0 +1,8 @@
+---
+
+- name: "Web Server | Install common package and set timezone"
+  include: install.yml
+
+- name: "Web Server | Configure web server"
+  include: configure.yml
+  

@@ -1,0 +1,51 @@
+---
+
+- name: "Web Server | Set the timezone in UTC"
+  file:
+    src: /usr/share/zoneinfo/UTC
+    dest: /etc/localtime
+    force: yes
+    state: link
+  tags:
+    - "web_server"
+    - "install"
+    - "timezone"
+
+- name: "Web Server | Set the timezone"
+  shell: dpkg-reconfigure -f noninteractive tzdata
+  tags:
+    - "web_server"
+    - "install"
+    - "timezone"
+
+- name: "Web Server | Create the non-privileged User"
+  user:
+    name: somesh
+    shell: /bin/bash
+    state: present 
+  tags:
+    - "web_server"
+    - "install"
+    - "user"
+
+- name: "Web Server | Install python-pip, nginx"
+  apt:
+    name: "{{ item }}"
+    state: present
+  with_items: 
+    - python-pip
+    - nginx
+  tags:
+    - "web_server"
+    - "install"
+    - "install_python-pip"
+    - "install_nginx"
+
+- name: "Web Server | Install flask Werkzeug python modules"
+  pip:
+    name: flask
+    state: present 
+  tags:
+    - "web_server"
+    - "install"
+    - "install_flask_Werkzeug"
